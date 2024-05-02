@@ -138,6 +138,7 @@ evento.onclick = () =>{
 }
 
 socket.on("userSuccess",(element)=>{
+    console.log(element);
     utenti.innerHTML = "<option value='' selected>Inserisci un invitato</option>";
     element.forEach(user =>{
         utenti.innerHTML +=  ("<option value='%EMAIL'>%USER</option>").replace("%EMAIL",user.email).replace("%USER",user.nome);

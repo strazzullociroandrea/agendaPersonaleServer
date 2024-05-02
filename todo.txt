@@ -1,0 +1,5 @@
+DA FARE:
+    3) collegamento ad un db
+    10) Possibilità di modificare l'evento
+    11) Gestione accesso con più account
+    13) Divisione per scopo

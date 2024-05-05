@@ -6,9 +6,7 @@ DA FARE:
     14) Eliminare l'account
 
 servizi da sistemare e testare
-    1) creaEvento
-    2) recuperaEventi
-    3) filtro
-    4) completa
-    5) cancella
+    2) recuperaEventi -> anche quelli a cui sono invitato
+    4) completa -> quando lo completo devo restituire gli invitati
+    5) cancella -> quando lo cancello devo restituire gli invitati
     

@@ -59,22 +59,39 @@ const render = (element) => {
     if (element) {
         if (element.length > 0) {
             elencoEventi.innerHTML = "";
-            element.reverse().map((val, index) => {
+            element.reverse().map(val => {
                 if (val) {
                     const email = sessionStorage.getItem("email");
                     const regex = new RegExp("\\b" + email + "\\b");
-                    const {id, titolo, descrizione, completato, tipologia, proprietario, utenti, scadenza } = val;
-                    let utentiStringa = JSON.parse(utenti).toString();
-                    if (utentiStringa.includes(email)) {
-                        utentiStringa = utentiStringa.replace(regex, "Tu");
+                    const { id, titolo, descrizione, completato, tipo, proprietario, utenti, dataOraScadenza } = val;
+                    let ut = JSON.parse(utenti).toString();
+                
+                    if (ut.length === 0) {
+                        ut = "Nessuno";
+                    } else {
+                        if (ut.includes(email)) {
+                            ut = ut.replace(regex, "Tu");
+                        }
                     }
-                    const risultato = utentiStringa.substring(0, 30);
-                    elencoEventi.innerHTML += templateEvento.replaceAll("%COM", completato ? "text-success" : "text-black").replaceAll("%DIS", completato ? "disabled" : "").replaceAll("%ID", id).replace("%TITOLO", titolo).replace("%DESCRIZIONE", descrizione)
-                    .replace("%PRO", proprietario == sessionStorage.getItem("email") ? "Tu": proprietario)
-                    .replace("%INV", risultato.substring(0,30))
-                    .replace("%TIPOLOGIA", tipologia)
-                    .replace("%SCA", scadenza.replace("T", " alle "));
+                
+                    const risultato = ut.substring(0, 30);
+                
+                    // Check if completato is true or false and apply classes accordingly
+                    const completatoClass = completato ? "text-success" : "text-black";
+                    const disabledAttr = completato ? "disabled" : "";
+                
+                    elencoEventi.innerHTML += templateEvento
+                        .replaceAll("%COM", completatoClass)
+                        .replaceAll("%DIS", disabledAttr)
+                        .replaceAll("%ID", id)
+                        .replace("%TITOLO", titolo)
+                        .replace("%DESCRIZIONE", descrizione)
+                        .replace("%PRO", proprietario == sessionStorage.getItem("email") ? "Tu" : proprietario)
+                        .replace("%INV", risultato.substring(0, 30))
+                        .replace("%TIPOLOGIA", tipo)
+                        .replace("%SCA", dataOraScadenza.replace("T", " alle "));
                 }
+                
             })
             //Gestione click button - completa evento
             document.querySelectorAll(".completaEvento").forEach(button => {
@@ -231,6 +248,7 @@ ricFiltro.onclick = () =>{
         });
     }else{
         socket.emit("filtro",({
+            email: sessionStorage.getItem("email"),
             titolo: ricTitolo.value, 
             descrizione: ricDescrizione.value, 
             tipologia: ricTipologia.value, 

@@ -21,8 +21,6 @@ server.listen(conf.port, () => {
 
     let associazioni = [];
     let eventiSospesi = [];
-    let eventi = [];
-    const utentiRegistrati = [];
     let conta = 0;
     /**
      * Modulo per gestire la registrazione di un utente
@@ -125,27 +123,28 @@ server.listen(conf.port, () => {
                 const oldAssocIndex = associazioni.findIndex(a => a.email === emailGlobale);
                 if (oldAssocIndex !== -1) {
                     associazioni.splice(oldAssocIndex, 1);
-                }
-                associazioni.push({ email, socket: socket.id });
-                mail.send(conf, emailGlobale, "Notifica di login",
+                    associazioni.push({ email, socket: socket.id });
+                    io.to(socket.id).emit("loginSuccess", { login: true });
+                }else{
+                    mail.send(conf, emailGlobale, "Notifica di login",
                     "Email generata automaticamente.\n Ricevi questa email perchè qualcuno ha fatto l'accesso alla tua area riservata.\n Se non sei stato tu cambia la password.");
-                io.to(socket.id).emit("loginSuccess", { login: true });
+                    associazioni.push({ email, socket: socket.id });  
+                    io.to(socket.id).emit("loginSuccess", { login: true });
+                }
             } else {
                 io.to(socket.id).emit("loginSuccess", { login: false });
             }
         });
 
-        socket.on("creaEvento", async (evento) => {//da finire di impelementare il servizio
+        socket.on("creaEvento", async (evento) => {
             if (evento?.utenti) {
                 await invita(JSON.parse(evento.utenti) || [], evento, "invito");
             }
             evento['id'] = conta;
             evento['proprietario'] = emailGlobale;
-            evento['completato'] = "false";
-            /*conta++;
-            eventi.push(evento);*/
+            evento['completato'] = false;
             const rs = await datab.creaEvento(evento);
-            io.to(socket.id).emit("creaSuccess", rs.result); // Invia la risposta al client dopo la creazione dell'evento
+            io.to(socket.id).emit("creaSuccess", rs.result);
         });
 
         socket.on("recuperaUser", async () => {
@@ -154,55 +153,30 @@ server.listen(conf.port, () => {
         })
 
         socket.on("filtro", async (dizionario) => {
-            const { titolo, descrizione, tipologia, scadenza } = dizionario;
-
-            /*const temp = eventi.filter(element => {
-                return element.titolo === titolo ||
-                    element.descrizione === descrizione ||
-                    element.tipologia === tipologia ||
-                    element.scadenza === scadenza.replace("T", " ");
-            });*/
-            const temp = await datab.filtro(titolo, descrizione, tipologia, scadenza);
-
+            const {email, titolo, descrizione, tipologia, scadenza } = dizionario;
+            const temp = await datab.filtro(email, titolo, descrizione, tipologia, scadenza);
             io.to(socket.id).emit("ottieniFiltered", temp.result);
         });
         socket.on("ottieniEventi", async (email) => {
-            /*const temp = eventi.filter(element => {
-                if (element.utenti && element.utenti.length > 4) {
-                    const tempUtenti = JSON.parse(element.utenti);
-                    if (tempUtenti.includes(email.email)) {
-                        return true;
-                    } else {
-                        return element.proprietario === email.email;
-                    }
-                } else {
-                    return element.proprietario === email.email;
-                }
-            });*/
             const rs = await datab.getEventi(email);
             io.to(socket.id).emit("ottieniSuccess", rs.result || []);
         });
 
         socket.on("completaEvento", async (idEvento) => {
-            const evento = eventi.find(element => element.id == idEvento);
             if (idEvento != "") {
                 const rs = await datab.completa(idEvento);
-                //devo restituire l'evento
-                await invita(rs?.evento || [], evento, "creaSuccess");
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
-                io.to(socket.id).emit("creaSuccess", false); // Invia un messaggio di errore al client
+                io.to(socket.id).emit("creaSuccess", false); 
             }
         });
 
         socket.on("deleteEvento", async (idEvento) => {
             if (idEvento != "") {
-                //eventi = eventi.filter(element => element.id != idEvento);
                 const rs = await datab.cancella(idEvento);
-                await invita(rs?.evento || [], evento, "creaSuccess");
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
-                io.to(socket.id).emit("creaSuccess", false); // Invia un messaggio di errore al client
+                io.to(socket.id).emit("creaSuccess", false);
             }
         });
 

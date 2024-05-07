@@ -2,7 +2,6 @@ DA FARE:
     10) Possibilità di modificare l'evento
     11) Gestione accesso con più account
     13) Divisione per scopo
-    14) Eliminare l'account
 
 servizi da sistemare e testare
     2) recuperaEventi -> anche quelli a cui sono invitato

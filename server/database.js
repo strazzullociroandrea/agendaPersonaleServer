@@ -137,8 +137,6 @@ const Database = async (conf) => {
     const creaEvento = async function (evento) {
         try {
             const { tipologia, titolo, descrizione, dataOraScadenza, completato, proprietario, utenti, scadenza} = evento;
-            console.log("Data ora scadenza. "+dataOraScadenza);
-            console.log(evento);
             const utenteProprietarioQuery = "SELECT * FROM User WHERE email = ?";
             const utenteProprietarioRows = await queryAsync(utenteProprietarioQuery, [proprietario]);
             if (!utenteProprietarioRows || utenteProprietarioRows.length === 0) {
@@ -269,45 +267,62 @@ const Database = async (conf) => {
         }
     }
 
+    const invitati = async (eventiInvitati) => {
+        const eventi = [];
+        for (let index = 0; index < eventiInvitati.length; index++) {
+            const element = eventiInvitati[index];
+            const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.idEvento]);
+            eventoDettaglio[0].completato = element.completato === "true" ? true : false;
+            eventoDettaglio[0].proprietario = eventoDettaglio[0].idUser;
+            const invitatiRows = await queryAsync('SELECT * FROM Invitare WHERE idEvento = ?', [element.idEvento]);
+            const invitati = [];
+            for (const invitatoRow of invitatiRows) {
+                const invitato = await queryAsync('SELECT * FROM User WHERE id = ?', [invitatoRow.idUser]);
+                invitati.push(invitato[0].email);
+            }
+            eventoDettaglio[0].utenti = JSON.stringify(invitati);
+            const proprietarioEvento = await queryAsync('SELECT * FROM User WHERE id = ?', [eventoDettaglio[0].idUser]);
+            eventoDettaglio[0].proprietario = proprietarioEvento[0].email;
+            eventi.push(eventoDettaglio[0]);
+        }
+        return eventi;
+    };
+    
     //Funzione per ottenere gli eventi associati - non prende quelli a cui sono stato invitato
     const getEventi = async (email) => {
         try {
             const utente = await queryAsync('SELECT * FROM User WHERE email = ?', [email.email]);
             if (!utente || utente.length === 0) {
-                return { result: []};
+                return { result: [] };
             }
-            const eventi = await queryAsync('SELECT * FROM Evento WHERE idUser = ?', [utente[0].id]);
-            for (let i = 0; i < eventi.length; i++) {
-                const evento = eventi[i];
+    
+            // Recupero degli eventi diretti dell'utente
+            const eventiDiretti = await queryAsync('SELECT * FROM Evento WHERE idUser = ?', [utente[0].id]);
+            for (let i = 0; i < eventiDiretti.length; i++) {
+                const evento = eventiDiretti[i];
                 const invitati = await queryAsync(`
                     SELECT User.* 
                     FROM Invitare 
                     INNER JOIN User ON Invitare.idUser = User.id
                     WHERE idEvento = ?
                 `, [evento.id]);
-                eventi[i].utenti = JSON.stringify(invitati || []);
-                eventi[i].proprietario = utente[0].nome;
-                eventi[i].completato = eventi[i].completato == "true" ? true : false;
+                evento.utenti = JSON.stringify(invitati || []);
+                evento.proprietario = utente[0].nome;
+                evento.completato = evento.completato == "true" ? true : false;
             }
-            //Recupero degli invitati
-            const query  = "SELECT * FROM Invitare WHERE idUser = ?";
-            const eventiInvitati = await queryAsync(query, [utente[0].id]);
-            if(eventiInvitati.length > 0){
-                return { result: eventi };
-            }else{
-                eventiInvitati.forEach(async element =>{
-                    //recupero il dettaglio dell'evento
-                    const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.id]);
-                    eventoDettaglio.completato = eventoDettaglio.completato == "true" ? true : false;
-                    eventi.push(eventoDettaglio);
-                    //mancano gli altri invitati ed il proprietario
-                })
-                return { result: eventi };
-            }
+    
+            // Recupero degli eventi a cui l'utente è stato invitato
+            const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
+            const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
+            const eventiInvitatiDettagliati = await invitati(eventiInvitati);
+    
+            return { result: [...eventiDiretti, ...eventiInvitatiDettagliati] };
         } catch (error) {
-            return { result: []};
+            return { result: [] };
         }
     };
+    
+
     //gestione eventi invitati
     return {
         registrati,

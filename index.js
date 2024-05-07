@@ -169,6 +169,7 @@ server.listen(conf.port, () => {
         });
         socket.on("ottieniEventi", async (email) => {
             const rs = await datab.getEventi(email);
+            console.log(rs);
             io.to(socket.id).emit("ottieniSuccess", rs.result || []);
         });
 

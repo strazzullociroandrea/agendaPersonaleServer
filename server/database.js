@@ -232,6 +232,16 @@ const Database = async (conf) => {
             return { result: false};
         }
     }
+    //Funzione per completare l'evento - manca la gestione degli invitati
+    const elimina = async function (email) {
+        try {
+            const sql = "DELETE FROM User WHERE email = ?";
+            await queryAsync(sql, email);
+            return { result: true};
+        } catch (e) {
+            return { result: false};
+        }
+    }
     const recuperaUser = async function (email) {
         try {
             const queryUno = "SELECT nome, email FROM User WHERE email <> ?";
@@ -310,7 +320,8 @@ const Database = async (conf) => {
         getEventi,
         creaEvento,
         cancella,
-        completa
+        completa,
+        elimina
     }
 
 }

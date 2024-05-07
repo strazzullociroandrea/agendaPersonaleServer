@@ -108,7 +108,36 @@
                     
                 </div>
             </div>
+           
         </div>
+        <div class=" container-fluid cont row justify-content-center mt-4">
+            <div class="card w-50">
+                <h3 class="mt-4 mb-3">Elimina il tuo account</h3>
+                <form onsubmit="return false" >
+                    <div class="container-fluid row mb-4">
+                        <input type="submit" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#elimina"/>
+                    </div>
+                </form>   
+            </div>
+        </div>
+        <div class="modal fade " id="elimina" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-body">
+                  <h1 class="text text-danger"><u>ATTENZIONE!</u></h1>
+                  <p>Questa operazione eliminerà completamente tutti i tuoi eventi, anche quelli condivisi.</p>
+                  <div class="row justify-content-center">
+                    <div class="col-2">
+                        <input type="button" class="btn btn-info" class="close" data-bs-dismiss="modal" value="Annulla"/>
+                    </div>
+                    <div class="col-2 ">
+                        <input type="button" class="btn btn-danger" id="eliminami" value="Procedi"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
     </div>
     </div>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>

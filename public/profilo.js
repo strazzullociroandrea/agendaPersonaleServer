@@ -3,6 +3,7 @@ const cognome = document.getElementById("cognome");
 const username = document.getElementById("username");
 const password = document.getElementById("password");
 const aggiorna = document.getElementById("aggiorna");
+const eliminami = document.getElementById("eliminami");
 //const spinner = document.getElementById("spinner");
 
 window.onload = async() =>{
@@ -51,5 +52,24 @@ aggiorna.onclick = async() =>{
         sessionStorage.setItem("password", password.value);
     }
     rsp = await rsp.json();
+    spinner.classList.add("d-none");
+}
+
+eliminami.onclick = async() =>{
+    spinner.classList.remove("d-none");
+    let rsp = await fetch("/elimina",{
+        method: "POST",
+        headers: {
+            "content-type": "application/json"
+        },
+        body: JSON.stringify({
+            email: username.value
+        })
+    })
+    rsp = await rsp.json();
+    if(rsp.result){
+        sessionStorage.clear();
+        window.location.href = "./index.html";
+    }
     spinner.classList.add("d-none");
 }

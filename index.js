@@ -40,6 +40,15 @@ server.listen(conf.port, () => {
             response.json({ result: false });
         }
     });
+    app.post("/elimina", async (req,res) => {
+        const {email}  = req.body;
+        if (email != "" && email) {
+            await datab.elimina(email);
+            res.json({result: true});
+        } else {
+            res.json({result: false});
+        }
+    });
     /**
      * Modulo per gestire l'aggiornamento di dettagli dell'utente
      */
@@ -180,7 +189,7 @@ server.listen(conf.port, () => {
                 io.to(socket.id).emit("creaSuccess", false);
             }
         });
-
+       
         socket.on("disconnect", () => {
             associazioni = associazioni.filter(a => a.socket !== socket.id);
         });

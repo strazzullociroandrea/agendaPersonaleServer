@@ -277,7 +277,21 @@ const Database = async (conf) => {
                 eventi[i].proprietario = utente[0].nome;
                 eventi[i].completato = eventi[i].completato == "true" ? true : false;
             }
-            return { result: eventi };
+            //Recupero degli invitati
+            const query  = "SELECT * FROM Invitare WHERE idUser = ?";
+            const eventiInvitati = await queryAsync(query, [utente[0].id]);
+            if(eventiInvitati.length > 0){
+                return { result: eventi };
+            }else{
+                eventiInvitati.forEach(async element =>{
+                    //recupero il dettaglio dell'evento
+                    const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.id]);
+                    eventoDettaglio.completato = eventoDettaglio.completato == "true" ? true : false;
+                    eventi.push(eventoDettaglio);
+                    //mancano gli altri invitati ed il proprietario
+                })
+                return { result: eventi };
+            }
         } catch (error) {
             return { result: []};
         }

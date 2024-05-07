@@ -136,7 +136,9 @@ const Database = async (conf) => {
     //Funzione per creare un evento - da finire
     const creaEvento = async function (evento) {
         try {
-            const { tipologia, titolo, descrizione, dataOraScadenza, completato, proprietario, utenti } = evento;
+            const { tipologia, titolo, descrizione, dataOraScadenza, completato, proprietario, utenti, scadenza} = evento;
+            console.log("Data ora scadenza. "+dataOraScadenza);
+            console.log(evento);
             const utenteProprietarioQuery = "SELECT * FROM User WHERE email = ?";
             const utenteProprietarioRows = await queryAsync(utenteProprietarioQuery, [proprietario]);
             if (!utenteProprietarioRows || utenteProprietarioRows.length === 0) {
@@ -147,7 +149,7 @@ const Database = async (conf) => {
                 INSERT INTO Evento (tipo, titolo, descrizione, dataOraScadenza, completato, idUser)
                 VALUES (?, ?, ?, ?, ?, ?)
             `;
-            const nuovoEventoParams = [tipologia, titolo || "Nessun titolo", descrizione || "Nessuna descrizione", dataOraScadenza || new Date().toISOString(), completato || "false", utenteProprietario.id];
+            const nuovoEventoParams = [tipologia, titolo || "Nessun titolo", descrizione || "Nessuna descrizione", scadenza || new Date().toISOString(), completato || "false", utenteProprietario.id];
             await queryAsync(inserisciEventoQuery, nuovoEventoParams);
             const eventoAppenaCreatoQuery = "SELECT last_insert_rowid() AS lastID";
             const eventoAppenaCreatoRows = await queryAsync(eventoAppenaCreatoQuery);

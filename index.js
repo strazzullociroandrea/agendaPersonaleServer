@@ -122,12 +122,13 @@ server.listen(conf.port, () => {
                 emailGlobale = email;
                 const oldAssocIndex = associazioni.findIndex(a => a.email === emailGlobale);
                 if (oldAssocIndex !== -1) {
+                    mail.send(conf, emailGlobale, "Notifica di login",
+                    "Email generata automaticamente.\n Ricevi questa email perchè qualcuno ha fatto l'accesso alla tua area riservata.\n Se non sei stato tu cambia la password.");
                     associazioni.splice(oldAssocIndex, 1);
                     associazioni.push({ email, socket: socket.id });
                     io.to(socket.id).emit("loginSuccess", { login: true });
                 }else{
-                    mail.send(conf, emailGlobale, "Notifica di login",
-                    "Email generata automaticamente.\n Ricevi questa email perchè qualcuno ha fatto l'accesso alla tua area riservata.\n Se non sei stato tu cambia la password.");
+                    
                     associazioni.push({ email, socket: socket.id });  
                     io.to(socket.id).emit("loginSuccess", { login: true });
                 }

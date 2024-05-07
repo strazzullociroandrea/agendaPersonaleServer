@@ -9,8 +9,3 @@ servizi da sistemare e testare
     4) completa -> quando lo completo devo restituire gli invitati
     5) cancella -> quando lo cancello devo restituire gli invitati
     
-
-./assets
-node_modules
-package-lock.json
-conf.json

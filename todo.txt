@@ -3,6 +3,7 @@ DA FARE:
     11) Gestione accesso con più account
     13) Divisione per scopo
     14) Eliminare l'account
+    15) Sistemazione dataOraScadenza
 
 servizi da sistemare e testare
     2) recuperaEventi -> anche quelli a cui sono invitato

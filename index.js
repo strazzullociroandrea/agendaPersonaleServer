@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
 
 server.listen(conf.port, () => {
-    ////console.log("Server avviato");
+    console.log("Server avviato");
 });
 (async () => {
     const datab = await Database(conf);
@@ -41,6 +41,7 @@ server.listen(conf.port, () => {
             response.json({ result: false });
         }
     });
+    //Servizio  per eliminare l'account
     app.post("/elimina", async (req,res) => {
         const {email}  = req.body;
         if (email != "" && email) {
@@ -81,6 +82,7 @@ server.listen(conf.port, () => {
         }
     });
 
+    //Servizio per aggiornare la password
     app.post("/aggiornaPassword", async (request, response) => {
         const { email, password } = request.body;
         if (email && email != "" && password && password != "") {
@@ -150,7 +152,7 @@ server.listen(conf.port, () => {
             if (evento?.utenti) {
                 await invita(JSON.parse(evento.utenti) || [], evento, "invito");
             }
-            evento['id'] = conta;
+            //evento['id'] = conta;
             evento['proprietario'] = emailGlobale;
             evento['completato'] = false;
             const rs = await datab.creaEvento(evento);

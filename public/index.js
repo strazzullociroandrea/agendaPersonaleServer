@@ -64,22 +64,21 @@ const render = (element) => {
                     const email = sessionStorage.getItem("email");
                     const regex = new RegExp("\\b" + email + "\\b");
                     const { id, titolo, descrizione, completato, tipo, proprietario, utenti, dataOraScadenza } = val;
-                    let ut = JSON.parse(utenti).toString();
-                
-                    if (ut.length === 0) {
-                        ut = "Nessuno";
-                    } else {
-                        if (ut.includes(email)) {
-                            ut = ut.replace(regex, "Tu");
+                    let ut = JSON.parse(utenti);
+                    let risultato = "";
+                    if (ut.length > 0) {
+                        ut.forEach(utente =>{
+                            risultato += utente;
+                        })
+                        if (risultato.includes(email)) {
+                            risultato = risultato.toString().replace(regex, "Tu");
                         }
+                    } else {
+                        risultato = "Nessuno";
                     }
-                
-                    const risultato = ut.substring(0, 30);
-                
-                    // Check if completato is true or false and apply classes accordingly
+                    risultato = risultato.substring(0, 30);
                     const completatoClass = completato ? "text-success" : "text-black";
                     const disabledAttr = completato ? "disabled" : "";
-                
                     elencoEventi.innerHTML += templateEvento
                         .replaceAll("%COM", completatoClass)
                         .replaceAll("%DIS", disabledAttr)
@@ -155,7 +154,6 @@ evento.onclick = () =>{
 }
 
 socket.on("userSuccess",(element)=>{
-    console.log(element);
     utenti.innerHTML = "<option value='' selected>Inserisci un invitato</option>";
     element.forEach(user =>{
         utenti.innerHTML +=  ("<option value='%EMAIL'>%USER</option>").replace("%EMAIL",user.email).replace("%USER",user.nome);

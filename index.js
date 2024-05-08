@@ -44,7 +44,7 @@ server.listen(conf.port, () => {
     //Servizio per visualizzare il file di log
     app.get("/log", (req,res)=>{
         try{
-            const file = fs.readFileSync("./assets/info.txt");
+            const file = fs.readFileSync("./assets/log.txt");
             res.json({result: file});
         }catch(error){
             res.json({result: "File non ancora generato"});

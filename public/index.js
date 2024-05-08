@@ -97,20 +97,23 @@ const render = (element) => {
             //Gestione click button - completa evento
             document.querySelectorAll(".completaEvento").forEach(button => {
                 button.onclick = () => {
+                    spinner.classList.remove("d-none");
                     socket.emit("completaEvento", {email: sessionStorage.getItem("email") , idEvento:button.id});
                 }
             })
             //Gestione click button - elimina evento
             document.querySelectorAll(".eliminaEvento").forEach(button =>{
                 button.onclick = () =>{
+                    spinner.classList.remove("d-none");
                     socket.emit("deleteEvento", {idEvento:button.id, email: sessionStorage.getItem("email")});
                 }
             })
             //Gestione click button - modifica evento
             document.querySelectorAll(".modificaEvento").forEach(button =>{
                 button.onclick = () =>{
+                    spinner.classList.remove("d-none");
                     console.log("modifica evento");
-                    socket.emit("recuperaUser");
+                    //socket.emit("recuperaUser","");
                     //Compilo la card
 
                     //socket.emit("modificaEvento", button.id);

@@ -5,8 +5,9 @@ const logout = document.getElementById("logout");
 let socket = io();
 //Gestione del button di logout
 logout.onclick = () =>{
+    spinner.classList.remove("d-none");
     sessionStorage.clear();
-    window.location.href="index.html";
     riservata.classList.add("d-none");
     form.classList.remove("d-none");
+    window.location.href="index.html";
 }

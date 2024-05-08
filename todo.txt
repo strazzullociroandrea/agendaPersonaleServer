@@ -1,8 +1,6 @@
 DA FARE:
     10) Possibilità di modificare l'evento
     14) Testing
-    15) Sistemazione spinner di caricamento
 
 servizi da sistemare e testare
     6) filtro -> non si vedono gli invitati
-    7) Non si vedono ancora gli invitati

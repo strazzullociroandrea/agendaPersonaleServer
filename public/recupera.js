@@ -25,5 +25,4 @@ reimposta.onclick = async() =>{
         password.classList.add("border-danger");
     }
     spinner.classList.add("d-none");
-
 }

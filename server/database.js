@@ -1,4 +1,5 @@
 const sqlite3 = require("sqlite3");
+const log = require("./log.js");
 
 const Database = async (conf) => {
     //creazione del db nel path specificato nel conf.json
@@ -78,6 +79,7 @@ const Database = async (conf) => {
             await queryAsync(insertUserQuery, [email, password, nome, cognome]);
             return { result: true };
         } catch (error) {
+            log(error);
             return { result: false };
         }
     };
@@ -107,7 +109,8 @@ const Database = async (conf) => {
             } else {
                 return { result: false };
             }
-        } catch (e) {
+        } catch (error) {
+            log(error);
             return { result: false };
         }
     };
@@ -117,7 +120,8 @@ const Database = async (conf) => {
             const queryUno = "SELECT * FROM User WHERE email = ?";
             const rows = await queryAsync(queryUno, [email]);
             return { result: rows[0] || "error" };
-        } catch (e) {
+        } catch (error) {
+            log(error);
             return { result: false };
         }
     }
@@ -133,7 +137,8 @@ const Database = async (conf) => {
             } else {
                 return { result: false };
             }
-        } catch (e) {
+        } catch (error) {
+            log(error);
             return { result: false };
         }
     }
@@ -147,7 +152,8 @@ const Database = async (conf) => {
             } else {
                 return { result: false };
             }
-        } catch (e) {
+        } catch (error) {
+            log(error);
             return { result: false };
         }
     }
@@ -184,6 +190,7 @@ const Database = async (conf) => {
             }
             return { result: true };
         } catch (error) {
+            log(error);
             return { result: false }
         }
     }
@@ -235,6 +242,7 @@ const Database = async (conf) => {
             const eventiInvitatiDettagliati = await invitati(eventiInvitati);*/
             return { result: temp };
         } catch (error) {
+            log(error);
             return { result: [] };
         }
     };
@@ -261,7 +269,8 @@ const Database = async (conf) => {
             const evv = await queryAsync(ev, [idEvento]);
             evv[0].utenti = utenti;
             return { result: true, evento: evv};
-        } catch (e) {
+        } catch (error) {
+            log(error);
             return { result: false };
         }
     }
@@ -288,7 +297,8 @@ const Database = async (conf) => {
             const sql = "DELETE FROM Evento WHERE id=?";
             await queryAsync(sql, [idEvento]);
             return { result: true, evento: evv};
-        } catch (e) {
+        } catch (error) {
+            log(error);
             return { result: false, message: "Si è verificato un errore durante l'eliminazione dell'evento" };
         }
     }
@@ -314,6 +324,7 @@ const Database = async (conf) => {
             });
             return { result: resultArray };
         } catch (error) {
+            log(error);
             return { result: [] };
         }
     };
@@ -344,6 +355,7 @@ const Database = async (conf) => {
             const eventiInvitatiDettagliati = await invitati(eventiInvitati);
             return { result: [...eventiDiretti, ...eventiInvitatiDettagliati] };
         } catch (error) {
+            log(error);
             return { result: [] };
         }
     };

@@ -4,3 +4,4 @@ package-lock.json
 conf.json
 assets/db.sqlite
 .DS_Store
+log.txt

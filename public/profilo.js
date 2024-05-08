@@ -4,7 +4,7 @@ const username = document.getElementById("username");
 const password = document.getElementById("password");
 const aggiorna = document.getElementById("aggiorna");
 const eliminami = document.getElementById("eliminami");
-//const spinner = document.getElementById("spinner");
+
 
 window.onload = async() =>{
     spinner.classList.remove("d-none");

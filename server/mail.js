@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-
+const log = require("./log.js");
 const result = {
    send: async (conf, email, subject, body) => {
       try {
@@ -18,6 +18,7 @@ const result = {
          });
       } catch (error) {
         // throw(error);
+        log(error);
       } 
    },
    test: async () => {

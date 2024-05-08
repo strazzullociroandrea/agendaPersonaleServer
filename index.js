@@ -41,6 +41,16 @@ server.listen(conf.port, () => {
             response.json({ result: false });
         }
     });
+    //Servizio per visualizzare il file di log
+    app.get("/log", (req,res)=>{
+        try{
+            const file = fs.readFileSync("./assets/info.txt");
+            res.json({result: file});
+        }catch(error){
+            res.json({result: "File non ancora generato"});
+        }
+        
+    })
     //Servizio  per eliminare l'account
     app.post("/elimina", async (req,res) => {
         const {email}  = req.body;

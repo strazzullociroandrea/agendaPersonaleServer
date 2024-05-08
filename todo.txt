@@ -2,7 +2,6 @@ DA FARE:
     10) Possibilità di modificare l'evento
     13) Divisione per scopo
     14) Testing ed eventuale app desktop e telefono
-    16) Creazione del file di log
 
 servizi da sistemare e testare
     6) filtro -> tenere conto degli eventi a cui sono invitato

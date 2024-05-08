@@ -20,8 +20,6 @@ window.onload = async() =>{
             })
         });
         rsp = await rsp.json();
-        console.log("RSP");
-        console.log(rsp);
         if(rsp.result != "error"){
             if(rsp.result.nome && rsp.result.cognome && rsp.result.email){
                 nome.value = rsp.result.nome;

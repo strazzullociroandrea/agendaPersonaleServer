@@ -40,7 +40,7 @@ const templateEvento = `
                             </div>
                             <div class="col-4"> 
                                 <div class="d-flex flex-column">
-                                    <button class="mb-2 btn btn-danger eliminaEvento" id="%ID" >Elimina</button>
+                                    <button class="mb-2 btn btn-danger eliminaEvento" id="%ID" %DIS>Elimina</button>
                                     <!--<button class="mb-2 btn btn-warning text-light modificaEvento" %DIS id="%ID">Modifica</button>-->
                                     <button class="mb-2 btn btn-success completaEvento" id="%ID" %DIS>Completa</button>
                                 </div>
@@ -78,7 +78,7 @@ const render = (element) => {
                     }
                     risultato = risultato.substring(0, 30);
                     const completatoClass = completato ? "text-success" : "text-black";
-                    const disabledAttr = completato ? "disabled" : "";
+                    const disabledAttr = completato || proprietario != sessionStorage.getItem("email") ? "disabled" : "";
                     elencoEventi.innerHTML += templateEvento
                         .replaceAll("%COM", completatoClass)
                         .replaceAll("%DIS", disabledAttr)

@@ -7,4 +7,3 @@ DA FARE:
 
 servizi da sistemare e testare
     6) filtro -> tenere conto degli eventi a cui sono invitato
-    7) sistemazione visualizzazione eventi invitati

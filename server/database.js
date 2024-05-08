@@ -1,9 +1,45 @@
 const sqlite3 = require("sqlite3");
 
-//da trasformare sequelize in sql 
 
 const Database = async (conf) => {
     const db = new sqlite3.Database(conf.db);
+
+    const invitati = async (eventiInvitati) => {
+        const eventi = [];
+        for (let index = 0; index < eventiInvitati.length; index++) {
+            const element = eventiInvitati[index];
+            const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.idEvento]);
+            if (eventoDettaglio.length > 0) { // Controlla se l'array non è vuoto
+                eventoDettaglio[0].completato = element?.completato === "true" && typeof element?.completato == 'string' ? true : false;
+                eventoDettaglio[0].proprietario = eventoDettaglio[0].idUser;
+                const invitatiRows = await queryAsync('SELECT * FROM Invitare WHERE idEvento = ?', [element.idEvento]);
+                const invitati = [];
+                for (const invitatoRow of invitatiRows) {
+                    const invitato = await queryAsync('SELECT * FROM User WHERE id = ?', [invitatoRow.idUser]);
+                    invitati.push(invitato[0].email);
+                }
+                eventoDettaglio[0].utenti = JSON.stringify(invitati);
+                const proprietarioEvento = await queryAsync('SELECT * FROM User WHERE id = ?', [eventoDettaglio[0].idUser]);
+                eventoDettaglio[0].proprietario = proprietarioEvento[0].email;
+                eventi.push(eventoDettaglio[0]);
+            }
+        }
+        return eventi;
+    };
+    
+
+    // Funzione per eseguire query SQLite in modo asincrono e restituire una promessa
+    function queryAsync(query, params) {
+        return new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(rows);
+            });
+        });
+    }
     db.run(`CREATE TABLE IF NOT EXISTS User (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
@@ -29,18 +65,7 @@ const Database = async (conf) => {
         FOREIGN KEY (idEvento) REFERENCES Evento(id) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
 
-    // Funzione per eseguire query SQLite in modo asincrono e restituire una promessa
-    function queryAsync(query, params) {
-        return new Promise((resolve, reject) => {
-            db.all(query, params, (err, rows) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(rows);
-            });
-        });
-    }
+
 
     //Funzione per la gestione della registrazione di un utente
     const registrati = async function (email, password, nome, cognome) {
@@ -48,12 +73,14 @@ const Database = async (conf) => {
             const checkEmailQuery = "SELECT * FROM User WHERE email = ?";
             const rows = await queryAsync(checkEmailQuery, [email]);
             if (rows && rows.length > 0) {
+                ////console.log("ciao");
                 return { result: false };
             }
             const insertUserQuery = "INSERT INTO User(email, password, nome, cognome) VALUES (?, ?, ?, ?)";
             await queryAsync(insertUserQuery, [email, password, nome, cognome]);
             return { result: true };
         } catch (error) {
+            ////console.log(error);
             return { result: false };
         }
     };
@@ -136,7 +163,7 @@ const Database = async (conf) => {
     //Funzione per creare un evento - da finire
     const creaEvento = async function (evento) {
         try {
-            const { tipologia, titolo, descrizione, dataOraScadenza, completato, proprietario, utenti, scadenza} = evento;
+            const { tipologia, titolo, descrizione, dataOraScadenza, completato, proprietario, utenti, scadenza } = evento;
             const utenteProprietarioQuery = "SELECT * FROM User WHERE email = ?";
             const utenteProprietarioRows = await queryAsync(utenteProprietarioQuery, [proprietario]);
             if (!utenteProprietarioRows || utenteProprietarioRows.length === 0) {
@@ -199,7 +226,7 @@ const Database = async (conf) => {
             const eventi = await queryAsync(query, params);
             const temp = [];
             for (let i = 0; i < eventi.length; i++) {
-                if(eventi[i].idUser == utente[0].id){
+                if (eventi[i].idUser == utente[0].id) {
                     const evento = eventi[i];
                     const invitati = await queryAsync(`
                         SELECT User.* 
@@ -213,6 +240,9 @@ const Database = async (conf) => {
                     temp.push(eventi[i]);
                 }
             }
+            /*const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
+            const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
+            const eventiInvitatiDettagliati = await invitati(eventiInvitati);*/
             return { result: temp };
         } catch (error) {
             return { result: [] };
@@ -221,23 +251,55 @@ const Database = async (conf) => {
 
 
     //Funzione per completare l'evento - manca la gestione degli invitati
-    const completa = async function (idEvento) {
+    const completa = async function (email, idEvento) {
         try {
+            const evento = await queryAsync('SELECT * FROM Evento WHERE id = ?', [idEvento]);
+            if (!evento || evento.length === 0) {
+                return { result: false, message: "Evento non trovato" };
+            }
+    
+            const proprietarioEvento = await queryAsync('SELECT idUser FROM Evento WHERE id = ?', [idEvento]);
+            if (proprietarioEvento[0].idUser !== email.id) {
+                return { result: false, message: "Non sei il proprietario di questo evento" };
+            }
+    
             const sql = "UPDATE Evento SET completato = 'true' WHERE id = ?";
-            await queryAsync(sql, idEvento);
-            return { result: true};
+            await queryAsync(sql, [idEvento]);
+            return { result: true, message: "Evento completato con successo" };
         } catch (e) {
-            return { result: false};
+            return { result: false, message: "Si è verificato un errore durante il completamento dell'evento" };
         }
     }
+    
+    //Funzione per cancellare l'evento - quando lo cancello devo restituire gli invitati
+    const cancella = async function (email, idEvento) {
+        try {
+            const evento = await queryAsync('SELECT * FROM Evento WHERE id = ?', [idEvento]);
+            if (!evento || evento.length === 0) {
+                return { result: false, message: "Evento non trovato" };
+            }
+    
+            const proprietarioEvento = await queryAsync('SELECT idUser FROM Evento WHERE id = ?', [idEvento]);
+            if (proprietarioEvento[0].idUser !== email.id) {
+                return { result: false, message: "Non sei il proprietario di questo evento" };
+            }
+    
+            const sql = "DELETE FROM Evento WHERE id=?";
+            await queryAsync(sql, [idEvento]);
+            return { result: true, message: "Evento eliminato con successo" };
+        } catch (e) {
+            return { result: false, message: "Si è verificato un errore durante l'eliminazione dell'evento" };
+        }
+    }
+    
     //Funzione per completare l'evento - manca la gestione degli invitati
     const elimina = async function (email) {
         try {
             const sql = "DELETE FROM User WHERE email = ?";
             await queryAsync(sql, email);
-            return { result: true};
+            return { result: true };
         } catch (e) {
-            return { result: false};
+            return { result: false };
         }
     }
     const recuperaUser = async function (email) {
@@ -254,48 +316,18 @@ const Database = async (conf) => {
             return { result: [] };
         }
     };
-    
 
-    //Funzione per cancellare l'evento - quando lo cancello devo restituire gli invitati
-    const cancella = async function (idEvento) {
-        try {
-            const sql = "DELETE FROM Evento WHERE id=?";
-            await queryAsync(sql, [idEvento]);
-            return {result: true};
-        } catch (e) {
-            return { result: false };
-        }
-    }
 
-    const invitati = async (eventiInvitati) => {
-        const eventi = [];
-        for (let index = 0; index < eventiInvitati.length; index++) {
-            const element = eventiInvitati[index];
-            const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.idEvento]);
-            eventoDettaglio[0].completato = element.completato === "true" ? true : false;
-            eventoDettaglio[0].proprietario = eventoDettaglio[0].idUser;
-            const invitatiRows = await queryAsync('SELECT * FROM Invitare WHERE idEvento = ?', [element.idEvento]);
-            const invitati = [];
-            for (const invitatoRow of invitatiRows) {
-                const invitato = await queryAsync('SELECT * FROM User WHERE id = ?', [invitatoRow.idUser]);
-                invitati.push(invitato[0].email);
-            }
-            eventoDettaglio[0].utenti = JSON.stringify(invitati);
-            const proprietarioEvento = await queryAsync('SELECT * FROM User WHERE id = ?', [eventoDettaglio[0].idUser]);
-            eventoDettaglio[0].proprietario = proprietarioEvento[0].email;
-            eventi.push(eventoDettaglio[0]);
-        }
-        return eventi;
-    };
-    
-    //Funzione per ottenere gli eventi associati - non prende quelli a cui sono stato invitato
+
+
+    //Funzione per ottenere gli eventi associati
     const getEventi = async (email) => {
         try {
             const utente = await queryAsync('SELECT * FROM User WHERE email = ?', [email.email]);
             if (!utente || utente.length === 0) {
                 return { result: [] };
             }
-    
+
             // Recupero degli eventi diretti dell'utente
             const eventiDiretti = await queryAsync('SELECT * FROM Evento WHERE idUser = ?', [utente[0].id]);
             for (let i = 0; i < eventiDiretti.length; i++) {
@@ -310,18 +342,22 @@ const Database = async (conf) => {
                 evento.proprietario = utente[0].nome;
                 evento.completato = evento.completato == "true" ? true : false;
             }
-    
+
             // Recupero degli eventi a cui l'utente è stato invitato
             const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
             const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
+            console.log("Sei stato invitato ai seguenti eventi: ");
+            console.log(eventiInvitati);
             const eventiInvitatiDettagliati = await invitati(eventiInvitati);
-    
+            console.log(eventiInvitatiDettagliati);
+            //console.log([...eventiDiretti, ...eventiInvitatiDettagliati]);
             return { result: [...eventiDiretti, ...eventiInvitatiDettagliati] };
         } catch (error) {
+            //console.log(error);
             return { result: [] };
         }
     };
-    
+
 
     //gestione eventi invitati
     return {

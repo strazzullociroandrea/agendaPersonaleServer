@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
 
 server.listen(conf.port, () => {
-    console.log("Server avviato");
+    ////console.log("Server avviato");
 });
 (async () => {
     const datab = await Database(conf);
@@ -27,6 +27,7 @@ server.listen(conf.port, () => {
      */
     app.post("/register", async (request, response) => {
         const { email, password, nome, cognome } = request.body;
+        //console.log(email, password, nome, cognome );
         if (email && email != "" && password && password != "" && nome && nome != "" && cognome && cognome != "") {
             const rs = await datab.registrati(email, password, nome, cognome);
             if (rs.result) {
@@ -137,7 +138,6 @@ server.listen(conf.port, () => {
                     associazioni.push({ email, socket: socket.id });
                     io.to(socket.id).emit("loginSuccess", { login: true });
                 }else{
-                    
                     associazioni.push({ email, socket: socket.id });  
                     io.to(socket.id).emit("loginSuccess", { login: true });
                 }
@@ -169,13 +169,16 @@ server.listen(conf.port, () => {
         });
         socket.on("ottieniEventi", async (email) => {
             const rs = await datab.getEventi(email);
-            console.log(rs);
+            //console.log(rs);
             io.to(socket.id).emit("ottieniSuccess", rs.result || []);
         });
 
         socket.on("completaEvento", async (idEvento) => {
             if (idEvento != "") {
-                const rs = await datab.completa(idEvento);
+                const rs = await datab.completa(idEvento); 
+                //const evento = await rs.evento;
+                
+               // invita(JSON.parse(rs.evento.utenti), rs.evento, "ottieniSuccess");
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
                 io.to(socket.id).emit("creaSuccess", false); 

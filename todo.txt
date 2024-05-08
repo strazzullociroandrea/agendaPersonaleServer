@@ -1,10 +1,8 @@
 DA FARE:
     10) Possibilità di modificare l'evento
-    11) Gestione accesso con più account
     13) Divisione per scopo
 
 servizi da sistemare e testare
-    2) recuperaEventi -> anche quelli a cui sono invitato
     4) completa -> quando lo completo devo restituire gli invitati
     5) cancella -> quando lo cancello devo restituire gli invitati
-    
+    6) filtro -> tenere conto degli eventi a cui sono invitato

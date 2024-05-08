@@ -177,9 +177,10 @@ server.listen(conf.port, () => {
             const {idEvento,email} = dizionario
             if (idEvento != "" && email != "") {
                 const rs = await datab.completa(email, idEvento); 
-                //const evento = await rs.evento;
-                console.log("Completa result: "+rs.result)
-               // invita(JSON.parse(rs.evento.utenti), rs.evento, "ottieniSuccess");
+                console.log(rs.evento);
+                if(rs.utenti){
+                    invita(rs.evento[0].utenti, evento[0], "creaSuccess");
+                }
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
                 io.to(socket.id).emit("creaSuccess", false); 

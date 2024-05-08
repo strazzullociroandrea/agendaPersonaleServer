@@ -74,14 +74,14 @@ const Database = async (conf) => {
             const checkEmailQuery = "SELECT * FROM User WHERE email = ?";
             const rows = await queryAsync(checkEmailQuery, [email]);
             if (rows && rows.length > 0) {
-                ////console.log("ciao");
+                //////console.log("ciao");
                 return { result: false };
             }
             const insertUserQuery = "INSERT INTO User(email, password, nome, cognome) VALUES (?, ?, ?, ?)";
             await queryAsync(insertUserQuery, [email, password, nome, cognome]);
             return { result: true };
         } catch (error) {
-            ////console.log(error);
+            //////console.log(error);
             return { result: false };
         }
     };
@@ -254,19 +254,17 @@ const Database = async (conf) => {
     //Funzione per completare l'evento - manca la gestione degli invitati
     const completa = async function (email, idEvento) {
         try {
-            console.log(idEvento);
+            //console.log(idEvento);
             const evento = await queryAsync('SELECT * FROM Evento WHERE id = ?', [idEvento]);
             if (!evento || evento.length === 0) {
-                console.log("Evento non trovato");
+                //console.log("Evento non trovato");
                 return { result: false};
             }
-    
             const proprietarioEvento = await queryAsync('SELECT * FROM Evento INNER JOIN User on idUser = User.id WHERE Evento.id = ? ', [idEvento]);
             if (proprietarioEvento[0].email !== email) {
-                console.log(proprietarioEvento[0]);
+                //console.log(proprietarioEvento[0]);
                 return { result: false};
             }
-    
             const sql = "UPDATE Evento SET completato = 'true' WHERE id = ?";
             await queryAsync(sql, [idEvento]);
             const getInvitati = "SELECT email FROM User INNER JOIN Invitare ON idUser = User.id WHERE idEvento = ?"
@@ -275,14 +273,18 @@ const Database = async (conf) => {
             invitati.forEach(element=>{
                 utenti.push(element.email);
             })
-            return { result: true, utenti};
+            const ev = "SELECT * FROM Evento WHERE id = ?";
+            const evv = await queryAsync(ev, [idEvento]);
+            //devo restituire l'evento
+            evv[0].utenti = utenti;
+            return { result: true, evento: evv};
         } catch (e) {
-            console.log(e);
+            //console.log(e);
             return { result: false };
         }
     }
 
-    //Funzione per cancellare l'evento - quando lo cancello devo restituire gli invitati
+    //Funzione per cancellare l'evento - quando lo cancello devo restituire gli invitati e non funziona
     const cancella = async function (email, idEvento) {
         try {
             const evento = await queryAsync('SELECT * FROM Evento WHERE id = ?', [idEvento]);
@@ -357,14 +359,14 @@ const Database = async (conf) => {
             // Recupero degli eventi a cui l'utente è stato invitato
             const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
             const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
-            console.log("Sei stato invitato ai seguenti eventi: ");
-            console.log(eventiInvitati);
+            //console.log("Sei stato invitato ai seguenti eventi: ");
+            //console.log(eventiInvitati);
             const eventiInvitatiDettagliati = await invitati(eventiInvitati);
-            console.log(eventiInvitatiDettagliati);
-            //console.log([...eventiDiretti, ...eventiInvitatiDettagliati]);
+            //console.log(eventiInvitatiDettagliati);
+            ////console.log([...eventiDiretti, ...eventiInvitatiDettagliati]);
             return { result: [...eventiDiretti, ...eventiInvitatiDettagliati] };
         } catch (error) {
-            //console.log(error);
+            ////console.log(error);
             return { result: [] };
         }
     };

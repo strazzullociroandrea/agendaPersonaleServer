@@ -194,58 +194,67 @@ const Database = async (conf) => {
             return { result: false }
         }
     }
-    //Funzione di ricerca tramite filtro
-    const filtro = async function (email, titolo, descrizione, tipologia, scadenza) {
-        try {
-            const params = [];
-            let query = 'SELECT * FROM Evento WHERE 1=1 ';
-            if (titolo && titolo != "") {
-                query += 'AND titolo = ? ';
-                params.push(titolo);
-            }
-            if (descrizione && descrizione != "") {
-                query += 'AND descrizione = ? ';
-                params.push(descrizione);
-            }
-            if (tipologia && tipologia != "") {
-                query += 'AND tipo = ? ';
-                params.push(tipologia);
-            }
-            if (scadenza && scadenza != "") {
-                const scadenzaFormattata = scadenza.replace("T", " ");
-                query += 'AND scadenza = ? ';
-                params.push(scadenzaFormattata);
-            }
-            const utente = await queryAsync('SELECT * FROM User WHERE email = ?', [email]);
-            if (!utente || utente.length === 0) {
-                return { result: [] };
-            }
-            const eventi = await queryAsync(query, params);
-            const temp = [];
-            for (let i = 0; i < eventi.length; i++) {
-                if (eventi[i].idUser == utente[0].id) {
-                    const evento = eventi[i];
-                    const invitati = await queryAsync(`
-                        SELECT User.* 
-                        FROM Invitare 
-                        INNER JOIN User ON Invitare.idUser = User.id
-                        WHERE idEvento = ?
-                    `, [evento.id]);
-                    eventi[i].utenti = JSON.stringify(invitati || []);
-                    eventi[i].proprietario = utente[0].nome;
-                    eventi[i].completato = eventi[i].completato == "true" ? true : false;
-                    temp.push(eventi[i]);
-                }
-            }
-            /*const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
-            const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
-            const eventiInvitatiDettagliati = await invitati(eventiInvitati);*/
-            return { result: temp };
-        } catch (error) {
-            log(error);
+  // Funzione di ricerca tramite filtro
+  const filtro = async function (email, titolo, descrizione, tipologia, scadenza) {
+    try {
+        const params = [];
+        let query = 'SELECT * FROM Evento WHERE 1=1 ';
+
+        if (titolo && titolo != "") {
+            query += 'AND titolo = ? ';
+            params.push(titolo);
+        }
+        if (descrizione && descrizione != "") {
+            query += 'AND descrizione = ? ';
+            params.push(descrizione);
+        }
+        if (tipologia && tipologia != "") {
+            query += 'AND tipo = ? ';
+            params.push(tipologia);
+        }
+        if (scadenza && scadenza != "") {
+            const scadenzaFormattata = scadenza.replace("T", " ");
+            query += 'AND scadenza = ? ';
+            params.push(scadenzaFormattata);
+        }
+
+        const utente = await queryAsync('SELECT * FROM User WHERE email = ?', [email]);
+        if (!utente || utente.length === 0) {
             return { result: [] };
         }
-    };
+
+        // Eventi propri non condivisi
+        const eventiPropri = await queryAsync(`
+            ${query} AND idUser = ? AND id NOT IN (
+                SELECT idEvento FROM Invitare WHERE idUser != (SELECT id FROM User WHERE email = ?)
+            );
+        `, [utente[0].id, email]);
+
+        // Eventi a cui è stato invitato
+        const sqlInvitati = `
+            SELECT Evento.*, User.email AS proprietario 
+            FROM Invitare 
+            INNER JOIN Evento ON Invitare.idEvento = Evento.id 
+            INNER JOIN User ON User.id = Evento.idUser 
+            WHERE Invitare.idUser = (SELECT id FROM User WHERE email = ?)
+        `;
+        const eventiInvitati = await queryAsync(sqlInvitati, [email]);
+
+        // Formattiamo i dati se necessario
+        const eventiFormattati = [...eventiPropri, ...eventiInvitati].map(evento => ({
+            ...evento,
+            completato: evento.completato === "true",
+            utenti: JSON.stringify(evento.utenti) || "[]" 
+        }));
+
+        return { result: eventiFormattati };
+    } catch (error) {
+        log(error);
+        return { result: [] };
+    }
+};
+
+
     //Funzione per completare l'evento
     const completa = async function (email, idEvento) {
         try {

@@ -173,11 +173,12 @@ server.listen(conf.port, () => {
             io.to(socket.id).emit("ottieniSuccess", rs.result || []);
         });
 
-        socket.on("completaEvento", async (idEvento) => {
-            if (idEvento != "") {
-                const rs = await datab.completa(idEvento); 
+        socket.on("completaEvento", async (dizionario) => {
+            const {idEvento,email} = dizionario
+            if (idEvento != "" && email != "") {
+                const rs = await datab.completa(email, idEvento); 
                 //const evento = await rs.evento;
-                
+                console.log("Completa result: "+rs.result)
                // invita(JSON.parse(rs.evento.utenti), rs.evento, "ottieniSuccess");
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {

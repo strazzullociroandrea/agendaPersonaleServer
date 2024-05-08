@@ -96,7 +96,7 @@ const render = (element) => {
             //Gestione click button - completa evento
             document.querySelectorAll(".completaEvento").forEach(button => {
                 button.onclick = () => {
-                    socket.emit("completaEvento", button.id);
+                    socket.emit("completaEvento", {email: sessionStorage.getItem("email") , idEvento:button.id});
                 }
             })
             //Gestione click button - elimina evento

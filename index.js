@@ -1,3 +1,4 @@
+//Librerie, configurazioni delle risposte e reindirizzamento
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -13,21 +14,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
 
+//Ascolto del server su una porta specificata nel file di configurazione
 server.listen(conf.port, () => {
     console.log("Server avviato");
 });
 (async () => {
-    const datab = await Database(conf);
-
-    let associazioni = [];
-    let eventiSospesi = [];
-    let conta = 0;
-    /**
-     * Modulo per gestire la registrazione di un utente
-     */
+    const datab = await Database(conf);//creazione del db
+    let associazioni = [];//array contenente associazione email - socket.id
+    let eventiSospesi = [];//array contenente gli eventi rimasti in sospeso di notifica a causa di utenti non online
+    //Servizio per la gestione della registrazione
     app.post("/register", async (request, response) => {
         const { email, password, nome, cognome } = request.body;
-        //console.log(email, password, nome, cognome );
         if (email && email != "" && password && password != "" && nome && nome != "" && cognome && cognome != "") {
             const rs = await datab.registrati(email, password, nome, cognome);
             if (rs.result) {
@@ -61,9 +58,7 @@ server.listen(conf.port, () => {
             res.json({result: false});
         }
     });
-    /**
-     * Modulo per gestire l'aggiornamento di dettagli dell'utente
-     */
+    //Servizio per aggiornare le info di un utente - tranne la mail 
     app.post("/aggiorna", async (request, response) => {
         const { email, password, nome, cognome } = request.body;
         if (email != "") {
@@ -78,10 +73,7 @@ server.listen(conf.port, () => {
         }
 
     });
-
-    /**
-     * Modulo per recuperare le informazioni di un utente
-     */
+    //Servizio per recuperare le informazioni di un utente
     app.post("/getInfo", async (request, response) => {
         const { email } = request.body;
         if (email && email != "") {
@@ -91,7 +83,6 @@ server.listen(conf.port, () => {
             response.json({ result: "error" })
         }
     });
-
     //Servizio per aggiornare la password
     app.post("/aggiornaPassword", async (request, response) => {
         const { email, password } = request.body;
@@ -108,7 +99,7 @@ server.listen(conf.port, () => {
             response.json({ result: false });
         }
     })
-
+    //Servizio per notificare gli invitati
     const invita = (array, evento, ev) => {
         return new Promise((resolve, reject) => {
             array.forEach(utente => {
@@ -134,9 +125,10 @@ server.listen(conf.port, () => {
             resolve();
         })
     }
-
+    //Servizio per la connessione socket - connection
     io.on("connection", (socket) => {
         let emailGlobale;
+        //Servizio per la gestione della login
         socket.on("login", async (dizionario) => {
             const { email, password } = dizionario;
             const rs = await datab.login(email, password);
@@ -157,34 +149,33 @@ server.listen(conf.port, () => {
                 io.to(socket.id).emit("loginSuccess", { login: false });
             }
         });
-
+        //Servizio per creare un evento
         socket.on("creaEvento", async (evento) => {
             if (evento?.utenti) {
                 await invita(JSON.parse(evento.utenti) || [], evento, "invito");
             }
-            //evento['id'] = conta;
             evento['proprietario'] = emailGlobale;
             evento['completato'] = false;
             const rs = await datab.creaEvento(evento);
             io.to(socket.id).emit("creaSuccess", rs.result);
         });
-
+        //Servizio per recuperare gli utenti registrati
         socket.on("recuperaUser", async () => {
             const temp = await datab.recuperaUser(emailGlobale);
             io.to(socket.id).emit("userSuccess", temp.result);
         })
-
+        //Servizio per ottenere gli eventi associati e che rispettano un determinato filtro
         socket.on("filtro", async (dizionario) => {
             const {email, titolo, descrizione, tipologia, scadenza } = dizionario;
             const temp = await datab.filtro(email, titolo, descrizione, tipologia, scadenza);
             io.to(socket.id).emit("ottieniFiltered", temp.result);
         });
+        //Servizio per ottenere gli eventi associati
         socket.on("ottieniEventi", async (email) => {
             const rs = await datab.getEventi(email);
-            //console.log(rs);
             io.to(socket.id).emit("ottieniSuccess", rs.result || []);
         });
-
+        //Servizio per contrassegnare come completato un evento
         socket.on("completaEvento", async (dizionario) => {
             const {idEvento,email} = dizionario
             if (idEvento != "" && email != "") {
@@ -197,7 +188,7 @@ server.listen(conf.port, () => {
                 io.to(socket.id).emit("creaSuccess", false); 
             }
         });
-
+        //Servizio per eliminare l'evento
         socket.on("deleteEvento", async (dizionario) => {
             const {idEvento,email} = dizionario
             if (idEvento != "" && email != "") {
@@ -210,7 +201,7 @@ server.listen(conf.port, () => {
                 io.to(socket.id).emit("creaSuccess", false);
             }
         });
-       
+       //Servizio per la gestione della disconnessione socket
         socket.on("disconnect", () => {
             associazioni = associazioni.filter(a => a.socket !== socket.id);
         });

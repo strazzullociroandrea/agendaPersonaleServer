@@ -12,7 +12,9 @@ const Database = async (conf) => {
             const element = eventiInvitati[index];
             const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.idEvento]);
             if (eventoDettaglio.length > 0) {
-                eventoDettaglio[0].completato = element?.completato === "true" && typeof element?.completato == 'string' ? true : false;
+                console.log("Ciao eve");
+                console.log( eventoDettaglio);
+                eventoDettaglio[0].completato = eventoDettaglio[0]?.completato == "true"? true : false;
                 eventoDettaglio[0].proprietario = eventoDettaglio[0].idUser;
                 const invitatiRows = await queryAsync('SELECT * FROM Invitare WHERE idEvento = ?', [element.idEvento]);
                 const invitati = [];
@@ -243,7 +245,7 @@ const Database = async (conf) => {
         // Formattiamo i dati se necessario
         const eventiFormattati = [...eventiPropri, ...eventiInvitati].map(evento => ({
             ...evento,
-            completato: evento.completato === "true",
+            completato: evento.completato == "true"? true: false,
             utenti: JSON.stringify(evento.utenti) || "[]" 
         }));
 
@@ -276,6 +278,7 @@ const Database = async (conf) => {
             })
             const ev = "SELECT * FROM Evento WHERE id = ?";
             const evv = await queryAsync(ev, [idEvento]);
+            console.log(evv);
             evv[0].utenti = utenti;
             return { result: true, evento: evv};
         } catch (error) {
@@ -361,7 +364,14 @@ const Database = async (conf) => {
             }
             const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
             const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
+            console.log("Marameo");
+            console.log(eventiInvitati);
+            console.log("FIne marameo");
             const eventiInvitatiDettagliati = await invitati(eventiInvitati);
+            console.log("Marameo");
+            console.log(eventiInvitatiDettagliati);
+            console.log("FIne marameo");
+            console.log([...eventiDiretti, ...eventiInvitatiDettagliati]);
             return { result: [...eventiDiretti, ...eventiInvitatiDettagliati] };
         } catch (error) {
             log(error);

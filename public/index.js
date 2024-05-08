@@ -76,6 +76,7 @@ const render = (element) => {
                     } else {
                         risultato = "Nessuno";
                     }
+                    console.log(val);
                     risultato = risultato.substring(0, 30);
                     const completatoClass = completato ? "text-success" : "text-black";
                     const disabledAttr = completato || proprietario != sessionStorage.getItem("email") ? "disabled" : "";

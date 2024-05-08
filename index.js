@@ -13,6 +13,7 @@ const Database = require("./server/database.js");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
+const path = require("path");
 
 //Ascolto del server su una porta specificata nel file di configurazione
 server.listen(conf.port, () => {
@@ -46,8 +47,20 @@ server.listen(conf.port, () => {
         }catch(error){
             res.json({result: "File non ancora generato"});
         }
-        
     })
+    // Middleware per catturare il richiamo GET alla pagina HTML desiderata
+    /*app.use((req, res, next) => {
+        console.log("ciao");
+        console.log(req.method === 'GET');
+        // Verifica se la richiesta è un GET e se il percorso richiesto corrisponde alla pagina HTML desiderata
+        if (req.method === 'GET' && req.headers.referer.includes('/profilo.html')){
+            // Esegui azioni desiderate quando viene richiesta la pagina profilo.html
+            console.log("Richiamo GET a /profilo.html catturato");
+            return res.redirect('/public/index.html');
+        }
+    });
+*/
+
     //Servizio  per eliminare l'account
     app.post("/elimina", async (req,res) => {
         const {email}  = req.body;

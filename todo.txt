@@ -3,7 +3,6 @@ DA FARE:
     13) Divisione per scopo
     14) Testing
     15) Sistemazione spinner di caricamento
-    16) Non sono completati gli eventi condivisi
 
 servizi da sistemare e testare
     6) filtro -> non si vedono gli invitati

@@ -1,15 +1,16 @@
 const sqlite3 = require("sqlite3");
 
-
 const Database = async (conf) => {
+    //creazione del db nel path specificato nel conf.json
     const db = new sqlite3.Database(conf.db);
 
+    //Funzione per gestire gli invitati ad un evento
     const invitati = async (eventiInvitati) => {
         const eventi = [];
         for (let index = 0; index < eventiInvitati.length; index++) {
             const element = eventiInvitati[index];
             const eventoDettaglio = await queryAsync('SELECT * FROM Evento WHERE id = ?', [element.idEvento]);
-            if (eventoDettaglio.length > 0) { // Controlla se l'array non è vuoto
+            if (eventoDettaglio.length > 0) {
                 eventoDettaglio[0].completato = element?.completato === "true" && typeof element?.completato == 'string' ? true : false;
                 eventoDettaglio[0].proprietario = eventoDettaglio[0].idUser;
                 const invitatiRows = await queryAsync('SELECT * FROM Invitare WHERE idEvento = ?', [element.idEvento]);
@@ -26,9 +27,7 @@ const Database = async (conf) => {
         }
         return eventi;
     };
-    
-
-    // Funzione per eseguire query SQLite-query in modo asincrono e restituire una promessa
+    // Funzione per eseguire query SQLite-query in modo asincrono
     function queryAsync(query, params) {
         return new Promise((resolve, reject) => {
             db.all(query, params, (err, rows) => {
@@ -40,7 +39,7 @@ const Database = async (conf) => {
             });
         });
     }
-
+    //Creazione della tabella User
     db.run(`CREATE TABLE IF NOT EXISTS User (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
@@ -48,6 +47,7 @@ const Database = async (conf) => {
         nome TEXT,
         cognome TEXT
     )`);
+    //Creazione della tabella Evento
     db.run(`CREATE TABLE IF NOT EXISTS Evento (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tipo TEXT,
@@ -58,6 +58,7 @@ const Database = async (conf) => {
         idUser INT,
         FOREIGN KEY (idUser) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
+    //Creazione della tabella Invitare
     db.run(`CREATE TABLE IF NOT EXISTS Invitare (
         idUser INTEGER,
         idEvento INTEGER,
@@ -65,31 +66,24 @@ const Database = async (conf) => {
         FOREIGN KEY (idUser) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY (idEvento) REFERENCES Evento(id) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
-
-
-
     //Funzione per la gestione della registrazione di un utente
     const registrati = async function (email, password, nome, cognome) {
         try {
             const checkEmailQuery = "SELECT * FROM User WHERE email = ?";
             const rows = await queryAsync(checkEmailQuery, [email]);
             if (rows && rows.length > 0) {
-                //////console.log("ciao");
                 return { result: false };
             }
             const insertUserQuery = "INSERT INTO User(email, password, nome, cognome) VALUES (?, ?, ?, ?)";
             await queryAsync(insertUserQuery, [email, password, nome, cognome]);
             return { result: true };
         } catch (error) {
-            //////console.log(error);
             return { result: false };
         }
     };
-
     // Funzione per aggiornare le informazioni dell'utente tranne l'email
     const update = async function (email, password, nome, cognome) {
         try {
-            // Verifica se l'utente esiste nel database
             const user = await queryAsync('SELECT * FROM User WHERE email = ?', [email]);
             if (user.length > 0) {
                 let updateQuery = 'UPDATE User SET ';
@@ -127,7 +121,6 @@ const Database = async (conf) => {
             return { result: false };
         }
     }
-
     //Funzione per aggiornare la password di un utente
     const aggiornaPassword = async function (email, password) {
         try {
@@ -144,11 +137,9 @@ const Database = async (conf) => {
             return { result: false };
         }
     }
-
     //Funzione per effettuare il login
     const login = async function (email, password) {
         try {
-            // Se l'email non esiste già, procedi con l'inserimento dell'utente
             const queryUno = "SELECT * FROM User WHERE email = ? AND PASSWORD = ?";
             const rows = await queryAsync(queryUno, [email, password]);
             if (rows && rows.length > 0) {
@@ -160,8 +151,7 @@ const Database = async (conf) => {
             return { result: false };
         }
     }
-
-    //Funzione per creare un evento - da finire
+    //Funzione per creare un evento
     const creaEvento = async function (evento) {
         try {
             const { tipologia, titolo, descrizione, dataOraScadenza, completato, proprietario, utenti, scadenza } = evento;
@@ -197,7 +187,6 @@ const Database = async (conf) => {
             return { result: false }
         }
     }
-
     //Funzione di ricerca tramite filtro
     const filtro = async function (email, titolo, descrizione, tipologia, scadenza) {
         try {
@@ -249,20 +238,15 @@ const Database = async (conf) => {
             return { result: [] };
         }
     };
-
-
-    //Funzione per completare l'evento - manca la gestione degli invitati
+    //Funzione per completare l'evento
     const completa = async function (email, idEvento) {
         try {
-            //console.log(idEvento);
             const evento = await queryAsync('SELECT * FROM Evento WHERE id = ?', [idEvento]);
             if (!evento || evento.length === 0) {
-                //console.log("Evento non trovato");
                 return { result: false};
             }
             const proprietarioEvento = await queryAsync('SELECT * FROM Evento INNER JOIN User on idUser = User.id WHERE Evento.id = ? ', [idEvento]);
             if (proprietarioEvento[0].email !== email) {
-                //console.log(proprietarioEvento[0]);
                 return { result: false};
             }
             const sql = "UPDATE Evento SET completato = 'true' WHERE id = ?";
@@ -275,16 +259,13 @@ const Database = async (conf) => {
             })
             const ev = "SELECT * FROM Evento WHERE id = ?";
             const evv = await queryAsync(ev, [idEvento]);
-            //devo restituire l'evento
             evv[0].utenti = utenti;
             return { result: true, evento: evv};
         } catch (e) {
-            //console.log(e);
             return { result: false };
         }
     }
-
-    //Funzione per cancellare l'evento - quando lo cancello devo restituire gli invitati e non funziona
+    //Funzione per cancellare l'evento
     const cancella = async function (email, idEvento) {
         try {
             const evento = await queryAsync('SELECT * FROM Evento WHERE id = ?', [idEvento]);
@@ -295,15 +276,22 @@ const Database = async (conf) => {
             if (proprietarioEvento[0].email !== email) {
                 return { result: false};
             }
+            const getInvitati = "SELECT email FROM User INNER JOIN Invitare ON idUser = User.id WHERE idEvento = ?"
+            const invitati = await queryAsync(getInvitati, [idEvento]);
+            const utenti = [];
+            invitati.forEach(element=>{
+                utenti.push(element.email);
+            })
+            const ev = "SELECT * FROM Evento WHERE id = ?";
+            const evv = await queryAsync(ev, [idEvento]);
+            evv[0].utenti = utenti;
             const sql = "DELETE FROM Evento WHERE id=?";
             await queryAsync(sql, [idEvento]);
-            return { result: true, message: "Evento eliminato con successo" };
+            return { result: true, evento: evv};
         } catch (e) {
-            console.log(e);
             return { result: false, message: "Si è verificato un errore durante l'eliminazione dell'evento" };
         }
     }
-    
     //Funzione per eliminare l'evento - manca la gestione degli invitati
     const elimina = async function (email) {
         try {
@@ -314,6 +302,7 @@ const Database = async (conf) => {
             return { result: false };
         }
     }
+    //Funzione per recuperare gli utenti registrati
     const recuperaUser = async function (email) {
         try {
             const queryUno = "SELECT nome, email FROM User WHERE email <> ?";
@@ -329,9 +318,6 @@ const Database = async (conf) => {
         }
     };
 
-
-
-
     //Funzione per ottenere gli eventi associati
     const getEventi = async (email) => {
         try {
@@ -339,7 +325,6 @@ const Database = async (conf) => {
             if (!utente || utente.length === 0) {
                 return { result: [] };
             }
-
             // Recupero degli eventi diretti dell'utente
             const eventiDiretti = await queryAsync('SELECT * FROM Evento WHERE idUser = ?', [utente[0].id]);
             for (let i = 0; i < eventiDiretti.length; i++) {
@@ -354,24 +339,16 @@ const Database = async (conf) => {
                 evento.proprietario = utente[0].nome;
                 evento.completato = evento.completato == "true" ? true : false;
             }
-
-            // Recupero degli eventi a cui l'utente è stato invitato
             const queryInviti = "SELECT * FROM Invitare WHERE idUser = ?";
             const eventiInvitati = await queryAsync(queryInviti, [utente[0].id]);
-            //console.log("Sei stato invitato ai seguenti eventi: ");
-            //console.log(eventiInvitati);
             const eventiInvitatiDettagliati = await invitati(eventiInvitati);
-            //console.log(eventiInvitatiDettagliati);
-            ////console.log([...eventiDiretti, ...eventiInvitatiDettagliati]);
             return { result: [...eventiDiretti, ...eventiInvitatiDettagliati] };
         } catch (error) {
-            ////console.log(error);
             return { result: [] };
         }
     };
 
-
-    //gestione eventi invitati
+    //return delle funzioni per manipolare il db
     return {
         registrati,
         update,

@@ -177,9 +177,8 @@ server.listen(conf.port, () => {
             const {idEvento,email} = dizionario
             if (idEvento != "" && email != "") {
                 const rs = await datab.completa(email, idEvento); 
-                console.log(rs.evento);
-                if(rs.utenti){
-                    invita(rs.evento[0].utenti, evento[0], "creaSuccess");
+                if(rs.evento[0].utenti){
+                    invita(rs.evento[0].utenti, rs.evento[0], "creaSuccess");
                 }
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
@@ -191,6 +190,9 @@ server.listen(conf.port, () => {
             const {idEvento,email} = dizionario
             if (idEvento != "" && email != "") {
                 const rs = await datab.cancella(email, idEvento);
+                if(rs.evento[0].utenti){
+                    invita(rs.evento[0].utenti, rs.evento[0], "creaSuccess");
+                }
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
                 io.to(socket.id).emit("creaSuccess", false);

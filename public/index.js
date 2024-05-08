@@ -102,7 +102,7 @@ const render = (element) => {
             //Gestione click button - elimina evento
             document.querySelectorAll(".eliminaEvento").forEach(button =>{
                 button.onclick = () =>{
-                    socket.emit("deleteEvento", button.id);
+                    socket.emit("deleteEvento", {idEvento:button.id, email: sessionStorage.getItem("email")});
                 }
             })
             //Gestione click button - modifica evento

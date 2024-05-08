@@ -291,16 +291,15 @@ const Database = async (conf) => {
             if (!evento || evento.length === 0) {
                 return { result: false, message: "Evento non trovato" };
             }
-    
-            const proprietarioEvento = await queryAsync('SELECT idUser FROM Evento WHERE id = ?', [idEvento]);
-            if (proprietarioEvento[0].idUser !== email.id) {
-                return { result: false, message: "Non sei il proprietario di questo evento" };
+            const proprietarioEvento = await queryAsync('SELECT * FROM Evento INNER JOIN User on idUser = User.id WHERE Evento.id = ? ', [idEvento]);
+            if (proprietarioEvento[0].email !== email) {
+                return { result: false};
             }
-    
             const sql = "DELETE FROM Evento WHERE id=?";
             await queryAsync(sql, [idEvento]);
             return { result: true, message: "Evento eliminato con successo" };
         } catch (e) {
+            console.log(e);
             return { result: false, message: "Si è verificato un errore durante l'eliminazione dell'evento" };
         }
     }

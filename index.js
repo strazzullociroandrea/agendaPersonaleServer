@@ -187,9 +187,10 @@ server.listen(conf.port, () => {
             }
         });
 
-        socket.on("deleteEvento", async (idEvento) => {
-            if (idEvento != "") {
-                const rs = await datab.cancella(idEvento);
+        socket.on("deleteEvento", async (dizionario) => {
+            const {idEvento,email} = dizionario
+            if (idEvento != "" && email != "") {
+                const rs = await datab.cancella(email, idEvento);
                 io.to(socket.id).emit("creaSuccess", rs.result);
             } else {
                 io.to(socket.id).emit("creaSuccess", false);

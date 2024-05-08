@@ -68,7 +68,7 @@ const render = (element) => {
                     let risultato = "";
                     if (ut.length > 0) {
                         ut.forEach(utente =>{
-                            risultato += utente;
+                            risultato += utente.email;
                         })
                         if (risultato.includes(email)) {
                             risultato = risultato.toString().replace(regex, "Tu");
@@ -76,6 +76,7 @@ const render = (element) => {
                     } else {
                         risultato = "Nessuno";
                     }
+                    console.log(ut);
                     risultato = risultato.substring(0, 30);
                     const completatoClass = completato ? "text-success" : "text-black";
                     const disabledAttr = completato ? "disabled" : "";

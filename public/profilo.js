@@ -9,7 +9,7 @@ const eliminami = document.getElementById("eliminami");
 window.onload = async() =>{
     spinner.classList.remove("d-none");
     const email = sessionStorage.getItem("email")
-    //if(email){
+    if(email){
         let rsp = await fetch("/getInfo",{
             method: "POST",
             headers: {
@@ -27,9 +27,9 @@ window.onload = async() =>{
                 username.value = rsp.result.email;
             }
         }
-    /*}else{
+    }else{
         window.location.href = "./index.html";
-    }*/
+    }
     spinner.classList.add("d-none");
 }
 aggiorna.onclick = async() =>{

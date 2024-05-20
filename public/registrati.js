@@ -6,6 +6,7 @@ const registrati = document.getElementById("registrati");
 const alert = document.getElementById("alert");
 const messageAlert = document.getElementById("messageAlert");
 const spinner = document.getElementById("spinner");
+spinner.classList.add("d-none");
 
 registrati.onclick = async() =>{
     spinner.classList.remove("d-none");

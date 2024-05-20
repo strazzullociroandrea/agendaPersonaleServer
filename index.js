@@ -17,7 +17,7 @@ const path = require("path");
 
 //Ascolto del server su una porta specificata nel file di configurazione
 server.listen(conf.port, () => {
-    console.log("Server avviato");
+    console.log("Server avviato sulla porta: "+conf.port);
 });
 (async () => {
     const datab = await Database(conf);//creazione del db

@@ -5,3 +5,4 @@ conf.json
 assets/db.sqlite
 .DS_Store
 log.txt
+.dist

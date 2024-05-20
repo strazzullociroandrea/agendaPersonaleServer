@@ -3,6 +3,8 @@ const password = document.getElementById("password");
 const reimposta = document.getElementById("reimposta");
 const spinner = document.getElementById("spinner");
 
+spinner.classList.add("d-none");
+
 reimposta.onclick = async() =>{
     spinner.classList.remove("d-none");
     let rsp = await fetch("/aggiornaPassword",{

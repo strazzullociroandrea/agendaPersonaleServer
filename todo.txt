@@ -4,3 +4,4 @@ DA FARE:
 
 servizi da sistemare e testare
     6) filtro -> non si vedono gli invitati
+    7) eliminazione evento non funziona
